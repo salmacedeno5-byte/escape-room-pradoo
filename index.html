@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perdidos en el Museo del Prado</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0f; }
+
+#app {
+  font-family: 'Source Sans 3', sans-serif;
+  background: #0a0a0f;
+  color: #e8e0d0;
+  min-height: 100vh;
+  position: relative;
+}
+
+.screen { display: none; flex-direction: column; }
+.screen.active { display: flex; }
+
+#intro {
+  padding: 48px 32px;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+  justify-content: center;
+}
+
+.museum-icon {
+  width: 72px; height: 72px;
+  border: 1px solid #8b7355;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8b7355;
+  border: 0.5px solid #8b7355;
+  padding: 4px 14px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+
+h1.title {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 400;
+  color: #f0e8d8;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+h1.title em { font-style: italic; color: #c4a86a; }
+
+.subtitle {
+  font-size: 14px;
+  color: #7a7060;
+  letter-spacing: 0.05em;
+  margin-bottom: 28px;
+}
+
+.story {
+  max-width: 500px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #a89880;
+  margin-bottom: 36px;
+}
+.story strong { color: #e8e0d0; font-weight: 600; }
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  max-width: 420px;
+  margin: 0 auto 32px;
+}
+
+.team-card {
+  border: 0.5px solid #2a2520;
+  border-radius: 8px;
+  padding: 16px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: #a89880;
+  font-family: 'Source Sans 3', sans-serif;
+}
+.team-card:hover, .team-card.selected {
+  border-color: #8b7355;
+  background: #1a1510;
+  color: #f0e8d8;
+}
+.team-card .team-icon { font-size: 26px; margin-bottom: 8px; }
+.team-card .team-name { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; }
+
+.btn-primary {
+  background: #8b7355;
+  color: #0a0a0f;
+  border: none;
+  padding: 16px 44px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover { background: #c4a86a; }
+.btn-primary:disabled { background: #2a2520; color: #555; cursor: not-allowed; }
+
+/* PUZZLE */
+#puzzle { min-height: 100vh; }
+
+.puzzle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 0.5px solid #1a1810;
+}
+
+.puzzle-meta { display: flex; align-items: center; gap: 20px; }
+
+.progress-dots { display: flex; gap: 6px; }
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 0.5px solid #2a2520;
+  background: transparent;
+  transition: all 0.3s;
+}
+.dot.done { background: #8b7355; border-color: #8b7355; }
+.dot.current { background: transparent; border-color: #c4a86a; box-shadow: 0 0 0 2px rgba(196,168,106,0.2); }
+
+.timer {
+  font-size: 22px;
+  font-weight: 300;
+  color: #c4a86a;
+  letter-spacing: 0.12em;
+}
+.timer.urgent { color: #c45a4a; }
+
+.team-badge {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #8b7355;
+  border: 0.5px solid #2a2520;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+.puzzle-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 700px) {
+  .puzzle-body { grid-template-columns: 1fr; }
+  .puzzle-left { border-right: none; border-bottom: 0.5px solid #1a1810; }
+}
+
+.puzzle-left {
+  padding: 28px 28px 28px 32px;
+  border-right: 0.5px solid #1a1810;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.room-tag {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8b7355;
+}
+
+h2.puzzle-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: #f0e8d8;
+  line-height: 1.3;
+}
+
+.painting-frame {
+  border: 1px solid #2a2520;
+  border-radius: 4px;
+  padding: 12px;
+  background: #0f0e0c;
+}
+.painting-inner {
+  border: 0.5px solid #1a1810;
+  border-radius: 2px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.painting-svg { width: 100%; height: 100%; }
+.painting-label {
+  font-size: 11px;
+  color: #3a3028;
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.clue-box {
+  border: 0.5px solid #2a2520;
+  border-radius: 6px;
+  padding: 14px 16px;
+  background: #0f0e0c;
+}
+.clue-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #4a4035;
+  margin-bottom: 8px;
+}
+.clue-text {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #a89880;
+}
+.clue-text strong { color: #c4a86a; }
+
+.puzzle-right {
+  padding: 28px 32px 28px 28px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.question-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin-bottom: 8px;
+}
+
+.question-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: #f0e8d8;
+  line-height: 1.5;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.option-btn {
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  background: transparent;
+  border: 0.5px solid #2a2520;
+  border-radius: 6px;
+  color: #a89880;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 12px;
+}
+.option-btn:hover:not(:disabled) {
+  border-color: #8b7355;
+  background: #1a1510;
+  color: #f0e8d8;
+}
+.option-btn.correct { border-color: #4a7355; background: #0a1a0f; color: #7abf8a; }
+.option-btn.wrong { border-color: #7a3528; background: #1a0a08; color: #bf6a60; }
+.option-btn:disabled { cursor: default; }
+
+.option-letter {
+  width: 22px; height: 22px;
+  border: 0.5px solid currentColor;
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.feedback-box {
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  display: none;
+}
+.feedback-box.show { display: block; }
+.feedback-box.success { border: 0.5px solid #4a7355; background: #0a1a0f; color: #7abf8a; }
+.feedback-box.error { border: 0.5px solid #7a3528; background: #1a0a08; color: #bf6a60; }
+
+.next-btn-wrap { margin-top: auto; padding-top: 8px; }
+
+.btn-next {
+  width: 100%;
+  background: transparent;
+  border: 0.5px solid #2a2520;
+  border-radius: 4px;
+  padding: 13px;
+  color: #6a6050;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: none;
+}
+.btn-next.show {
+  display: block;
+  border-color: #8b7355;
+  color: #c4a86a;
+}
+.btn-next.show:hover { background: #1a1510; color: #f0e8d8; }
+
+.qr-strip {
+  padding: 16px 32px;
+  border-top: 0.5px solid #1a1810;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.qr-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border: 0.5px solid #2a2520;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.qr-text { font-size: 12px; color: #5a5040; line-height: 1.6; }
+.qr-text strong { color: #8b7355; }
+
+/* WIN */
+#win {
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 32px;
+}
+.trophy { font-size: 64px; margin-bottom: 20px; }
+h2.win-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 400;
+  color: #c4a86a;
+  margin-bottom: 12px;
+}
+.win-subtitle { font-size: 15px; color: #7a7060; margin-bottom: 32px; }
+.score-card {
+  border: 0.5px solid #2a2520;
+  border-radius: 8px;
+  padding: 24px 36px;
+  margin: 0 auto 32px;
+  max-width: 340px;
+  background: #0f0e0c;
+}
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 0.5px solid #1a1810;
+  font-size: 14px;
+  color: #a89880;
+}
+.score-row:last-child { border-bottom: none; }
+.score-row span:last-child { color: #c4a86a; font-weight: 600; }
+.stars { font-size: 26px; letter-spacing: 6px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- INTRO -->
+  <div id="intro" class="screen active">
+    <div class="museum-icon"><i class="ti ti-building-arch" style="font-size:32px; color:#8b7355;"></i></div>
+    <div class="badge">Escape Room Virtual · Español</div>
+    <h1 class="title">Perdidos en el<br><em>Museo del Prado</em></h1>
+    <p class="subtitle">Madrid, España &middot; Sala Cerrada &middot; 4 Acertijos &middot; 15 minutos</p>
+    <p class="story">
+      Son las 21:58. El Museo del Prado está a punto de cerrar.
+      Tu equipo se ha <strong>quedado atrapado</strong> dentro.
+      Para escapar antes de que active la alarma, deben resolver
+      cuatro acertijos lingüísticos y culturales escondidos entre
+      las obras maestras del arte español.
+    </p>
+    <div style="font-size:13px; color:#5a5040; margin-bottom:16px; letter-spacing:0.05em;">Elige tu equipo:</div>
+    <div class="teams-grid">
+      <button class="team-card" onclick="selectTeam(this,'Velázquez')">
+        <div class="team-icon">🎨</div>
+        <div class="team-name">Velázquez</div>
+      </button>
+      <button class="team-card" onclick="selectTeam(this,'Goya')">
+        <div class="team-icon">🌑</div>
+        <div class="team-name">Goya</div>
+      </button>
+      <button class="team-card" onclick="selectTeam(this,'El Greco')">
+        <div class="team-icon">⛅</div>
+        <div class="team-name">El Greco</div>
+      </button>
+    </div>
+    <button class="btn-primary" id="startBtn" onclick="startGame()" disabled>Entrar al Museo →</button>
+  </div>
+
+  <!-- PUZZLE -->
+  <div id="puzzle" class="screen">
+    <div class="puzzle-header">
+      <div class="puzzle-meta">
+        <div class="progress-dots" id="dots"></div>
+        <span style="font-size:12px; color:#5a5040;" id="pProgress">Acertijo 1 de 4</span>
+      </div>
+      <div class="timer" id="timer">15:00</div>
+      <div class="team-badge" id="teamLabel"></div>
+    </div>
+    <div class="puzzle-body">
+      <div class="puzzle-left">
+        <div class="room-tag" id="roomTag"></div>
+        <h2 class="puzzle-title" id="puzzleTitle"></h2>
+        <div class="painting-frame">
+          <div class="painting-inner" id="paintingArea"></div>
+          <div class="painting-label" id="paintingLabel"></div>
+        </div>
+        <div class="clue-box">
+          <div class="clue-label">Pista cultural</div>
+          <div class="clue-text" id="clueText"></div>
+        </div>
+      </div>
+      <div class="puzzle-right">
+        <div>
+          <div class="question-label">Pregunta</div>
+          <p class="question-text" id="questionText"></p>
+        </div>
+        <ul class="options-list" id="optionsList"></ul>
+        <div class="feedback-box" id="feedbackBox"></div>
+        <div class="next-btn-wrap">
+          <button class="btn-next" id="nextBtn" onclick="nextPuzzle()">
+            <i class="ti ti-arrow-right"></i> Siguiente sala
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="qr-strip">
+      <div class="qr-icon"><i class="ti ti-qrcode" style="color:#4a4035; font-size:22px;"></i></div>
+      <div class="qr-text">
+        <strong>Código QR escondido:</strong> Busca el código QR en la sala para obtener una pista adicional.
+        El código está escondido detrás del cuadro más grande de la sala.
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN -->
+  <div id="win" class="screen">
+    <div class="trophy">🏆</div>
+    <h2 class="win-title">¡Habéis escapado!</h2>
+    <p class="win-subtitle">El guardia os encuentra justo cuando suena la alarma…</p>
+    <div class="stars" id="starsDisplay"></div>
+    <div class="score-card">
+      <div class="score-row"><span>Equipo</span><span id="finalTeam"></span></div>
+      <div class="score-row"><span>Tiempo restante</span><span id="finalTime"></span></div>
+      <div class="score-row"><span>Respuestas correctas</span><span id="finalScore"></span></div>
+      <div class="score-row"><span>Puntuación</span><span id="finalPoints"></span></div>
+    </div>
+    <button class="btn-primary" onclick="resetGame()">Jugar de nuevo ↺</button>
+  </div>
+</div>
+
+<script>
+const puzzles = [
+  {
+    room: "Sala 12 · Las Meninas",
+    title: "El espejo del rey",
+    painting: "meninas",
+    paintingLabel: "Las Meninas — Diego Velázquez, 1656",
+    clue: "En este cuadro, Velázquez se retrató a sí mismo mientras pintaba. El rey Felipe IV y su esposa aparecen reflejados en un <strong>espejo al fondo</strong>. La palabra «menina» viene del portugués y significa dama de compañía.",
+    question: "¿Qué tiempo verbal se usa para describir acciones que ocurrían habitualmente en el pasado, como las actividades diarias en la corte real?",
+    options: ["El pretérito indefinido", "El pretérito imperfecto", "El futuro simple", "El presente de subjuntivo"],
+    correct: 1,
+    feedback: "¡Correcto! El pretérito imperfecto (jugaba, pintaba, vivía) describe acciones habituales o continuas en el pasado. Velázquez «pintaba» en la corte regularmente."
+  },
+  {
+    room: "Sala 65 · Pinturas Negras",
+    title: "Saturno devora a su hijo",
+    painting: "saturno",
+    paintingLabel: "Saturno devorando a su hijo — F. Goya, 1820-23",
+    clue: "Goya pintó esta obra directamente en las paredes de su casa. Es una de las <strong>Pinturas Negras</strong>. La historia viene de la mitología romana: Saturno comía a sus hijos por miedo a que le quitaran el poder.",
+    question: "La frase «¡Ojalá no hubiera hecho eso!» expresa arrepentimiento. ¿Qué modo verbal aparece en esta exclamación?",
+    options: ["Indicativo pretérito perfecto", "Condicional compuesto", "Subjuntivo pluscuamperfecto", "Imperativo negativo"],
+    correct: 2,
+    feedback: "¡Excelente! «Hubiera hecho» es subjuntivo pluscuamperfecto. Se usa con «ojalá» para expresar deseos imposibles sobre el pasado."
+  },
+  {
+    room: "Sala 10B · El Greco",
+    title: "La Trinidad",
+    painting: "greco",
+    paintingLabel: "La Trinidad — El Greco, 1577-79",
+    clue: "El Greco nació en Creta (Grecia) pero vivió en Toledo, España. Su estilo mezclaba la tradición <strong>bizantina</strong> con el renacimiento italiano. Sus figuras son alargadas y sus colores, muy intensos.",
+    question: "Toledo era la capital cultural de España en el siglo XVI. ¿Cómo se llama el fenómeno lingüístico cuando una lengua absorbe palabras de otra cultura, como el español tomando palabras del árabe?",
+    options: ["La metáfora cultural", "El préstamo lingüístico", "La derivación morfológica", "La sinonimia léxica"],
+    correct: 1,
+    feedback: "¡Muy bien! El préstamo lingüístico explica por qué el español tiene palabras de origen árabe como «alcázar», «azúcar» u «ojalá». ¡Toledo fue centro de convivencia entre culturas durante siglos!"
+  },
+  {
+    room: "Sala 29 · La clave final",
+    title: "El código del guardia",
+    painting: "lock",
+    paintingLabel: "Puerta de salida · Planta baja",
+    clue: "Para abrir la puerta, necesitáis demostrar que entendéis la cultura hispanohablante. El guardia os hará una última pregunta. <strong>¡Pensad bien!</strong>",
+    question: "Un amigo español os dice: «Quedamos a las 9, pero llegad sobre las 9 y media.» ¿Qué implica culturalmente esta invitación?",
+    options: [
+      "Llegar a las 9 en punto es una falta de respeto",
+      "En España es socialmente aceptable —incluso esperado— llegar con retraso a eventos sociales informales",
+      "La hora exacta no importa porque las fiestas duran toda la noche",
+      "Solo los turistas llegan tarde; los españoles llegan puntuales"
+    ],
+    correct: 1,
+    feedback: "¡Perfecto! En la cultura española, llegar puntual a eventos informales puede considerarse demasiado formal. Esta norma cultural no escrita es parte del «arte de vivir» español. ¡La puerta se abre!"
+  }
+];
+
+let currentPuzzle = 0, selectedTeam = '', score = 0;
+let timerInterval, secondsLeft = 900, answered = false;
+
+function selectTeam(btn, name) {
+  document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedTeam = name;
+  document.getElementById('startBtn').disabled = false;
+}
+
+function startGame() {
+  currentPuzzle = 0; score = 0; secondsLeft = 900;
+  showScreen('puzzle');
+  document.getElementById('teamLabel').textContent = 'Equipo ' + selectedTeam;
+  buildDots();
+  loadPuzzle();
+  startTimer();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function buildDots() {
+  const d = document.getElementById('dots');
+  d.innerHTML = '';
+  puzzles.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' current' : '');
+    dot.id = 'dot' + i;
+    d.appendChild(dot);
+  });
+}
+
+function updateDots() {
+  puzzles.forEach((_, i) => {
+    const dot = document.getElementById('dot' + i);
+    if (!dot) return;
+    dot.className = 'dot' + (i < currentPuzzle ? ' done' : i === currentPuzzle ? ' current' : '');
+  });
+}
+
+function loadPuzzle() {
+  answered = false;
+  const p = puzzles[currentPuzzle];
+  document.getElementById('roomTag').textContent = p.room;
+  document.getElementById('puzzleTitle').textContent = p.title;
+  document.getElementById('paintingLabel').textContent = p.paintingLabel;
+  document.getElementById('clueText').innerHTML = p.clue;
+  document.getElementById('questionText').textContent = p.question;
+  document.getElementById('pProgress').textContent = 'Acertijo ' + (currentPuzzle + 1) + ' de ' + puzzles.length;
+  document.getElementById('paintingArea').innerHTML = getPaintingSVG(p.painting);
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box'; fb.textContent = '';
+  const nb = document.getElementById('nextBtn');
+  nb.className = 'btn-next';
+
+  const opts = document.getElementById('optionsList');
+  opts.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  p.options.forEach((opt, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<button class="option-btn" onclick="checkAnswer(' + i + ')"><span class="option-letter">' + letters[i] + '</span>' + opt + '</button>';
+    opts.appendChild(li);
+  });
+  updateDots();
+}
+
+function getPaintingSVG(type) {
+  const svgs = {
+    meninas: '<svg class="painting-svg" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg"><rect width="280" height="180" fill="#0a0908"/><rect x="30" y="20" width="90" height="140" fill="#1a1510" rx="2"/><rect x="160" y="30" width="75" height="110" fill="#1a1510" rx="2"/><ellipse cx="75" cy="118" rx="16" ry="22" fill="#2a2018"/><ellipse cx="75" cy="94" rx="9" ry="10" fill="#2a2018"/><ellipse cx="197" cy="110" rx="13" ry="20" fill="#2a2018"/><ellipse cx="197" cy="88" rx="8" ry="9" fill="#2a2018"/><rect x="205" y="10" width="28" height="36" fill="#1e1a10" rx="1"/><circle cx="219" cy="24" r="6" fill="#2a2415"/><text x="140" y="172" text-anchor="middle" fill="#3a3020" font-size="9" font-family="serif" font-style="italic">Las Meninas · 1656</text></svg>',
+    saturno: '<svg class="painting-svg" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg"><rect width="280" height="180" fill="#080608"/><rect x="0" y="70" width="280" height="110" fill="#0f0a0a"/><ellipse cx="140" cy="60" rx="48" ry="58" fill="#1a1210"/><ellipse cx="140" cy="22" rx="24" ry="26" fill="#1e1610"/><rect x="98" y="58" width="16" height="32" fill="#1a1210"/><rect x="166" y="58" width="16" height="32" fill="#1a1210"/><ellipse cx="107" cy="68" rx="11" ry="13" fill="#141010"/><circle cx="130" cy="20" r="5" fill="#100808"/><circle cx="150" cy="20" r="5" fill="#100808"/><rect x="120" y="30" width="40" height="8" fill="#100808" rx="2"/><text x="140" y="173" text-anchor="middle" fill="#2a1a18" font-size="9" font-family="serif" font-style="italic">Saturno devorando · c.1820</text></svg>',
+    greco: '<svg class="painting-svg" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg"><rect width="280" height="180" fill="#08090f"/><ellipse cx="140" cy="130" rx="55" ry="40" fill="#101218"/><ellipse cx="140" cy="92" rx="24" ry="34" fill="#131520"/><ellipse cx="140" cy="62" rx="16" ry="18" fill="#151722"/><path d="M122 64 Q140 22 158 64" stroke="#1e2235" stroke-width="2" fill="none"/><ellipse cx="98" cy="100" rx="20" ry="30" fill="#101218"/><ellipse cx="182" cy="100" rx="20" ry="30" fill="#101218"/><ellipse cx="98" cy="72" rx="11" ry="14" fill="#131520"/><ellipse cx="182" cy="72" rx="11" ry="14" fill="#131520"/><circle cx="140" cy="20" r="13" fill="#1a1c2a"/><text x="140" y="173" text-anchor="middle" fill="#282a40" font-size="9" font-family="serif" font-style="italic">La Trinidad · 1577–79</text></svg>',
+    lock: '<svg class="painting-svg" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg"><rect width="280" height="180" fill="#0a0a08"/><rect x="80" y="30" width="120" height="110" fill="#101008" rx="3" stroke="#2a2810" stroke-width="1"/><rect x="118" y="105" width="44" height="35" fill="#0f0f08"/><circle cx="140" cy="88" r="22" fill="#151510" stroke="#2a2810" stroke-width="0.5"/><rect x="128" y="66" width="24" height="10" fill="#1a1a10" rx="2"/><rect x="134" y="88" width="12" height="14" fill="#0a0a08" rx="2"/><text x="140" y="167" text-anchor="middle" fill="#3a3820" font-size="9" font-family="serif">Puerta de salida</text></svg>'
+  };
+  return svgs[type] || svgs.lock;
+}
+
+function checkAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const p = puzzles[currentPuzzle];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedbackBox');
+  const nb = document.getElementById('nextBtn');
+
+  if (idx === p.correct) {
+    btns[idx].classList.add('correct');
+    fb.className = 'feedback-box success show';
+    fb.textContent = p.feedback;
+    score++;
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[p.correct].classList.add('correct');
+    fb.className = 'feedback-box error show';
+    fb.textContent = '✗ No exactamente. Respuesta correcta: ' + ['A','B','C','D'][p.correct] + '. ' + p.feedback;
+  }
+
+  nb.className = 'btn-next show';
+  if (currentPuzzle === puzzles.length - 1) {
+    nb.innerHTML = '<i class="ti ti-door-exit"></i> ¡Escapar del museo!';
+  }
+}
+
+function nextPuzzle() {
+  currentPuzzle++;
+  if (currentPuzzle >= puzzles.length) {
+    clearInterval(timerInterval);
+    showWin();
+  } else {
+    loadPuzzle();
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    const m = Math.floor(secondsLeft / 60);
+    const s = secondsLeft % 60;
+    const el = document.getElementById('timer');
+    el.textContent = m + ':' + String(s).padStart(2,'0');
+    if (secondsLeft <= 120) el.classList.add('urgent');
+    if (secondsLeft <= 0) { clearInterval(timerInterval); showWin(); }
+  }, 1000);
+}
+
+function showWin() {
+  showScreen('win');
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const stars = score >= 4 ? '⭐⭐⭐' : score >= 3 ? '⭐⭐' : '⭐';
+  const points = score * 250 + secondsLeft;
+  document.getElementById('starsDisplay').textContent = stars;
+  document.getElementById('finalTeam').textContent = 'Equipo ' + selectedTeam;
+  document.getElementById('finalTime').textContent = m + ':' + String(s).padStart(2,'0');
+  document.getElementById('finalScore').textContent = score + ' / ' + puzzles.length;
+  document.getElementById('finalPoints').textContent = points.toLocaleString() + ' pts';
+}
+
+function resetGame() {
+  currentPuzzle = 0; score = 0; secondsLeft = 900;
+  selectedTeam = '';
+  clearInterval(timerInterval);
+  document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('startBtn').disabled = true;
+  showScreen('intro');
+}
+</script>
+</body>
+</html>
